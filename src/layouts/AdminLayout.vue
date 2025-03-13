@@ -4,7 +4,7 @@
         <ul>
           <li><router-link to="/dashboard">Dashboard</router-link></li>
           <li><router-link to="/users">Users</router-link></li>
-          <li><router-link to="/orders">Orders</router-link></li>
+          <li><router-link to="/inventory">Orders</router-link></li>
           <li><button @click="logout">Logout</button></li>
         </ul>
       </nav>

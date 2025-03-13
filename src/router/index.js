@@ -2,8 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Login from '../views/Login.vue';
 import Dashboard from '../views/Dashboard.vue';
 import Users from '../views/Users.vue';
-import Orders from '../views/Orders.vue';
 import AdminLayout from '../layouts/AdminLayout.vue';
+import Inventory from '../views/Inventory.vue';
 
 const routes = [
   { path: '/', component: Login },
@@ -18,8 +18,8 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/orders',
-    component: Orders,
+    path: '/inventory',
+    component: Inventory,
     meta: { requiresAuth: true },
   }
 ];
