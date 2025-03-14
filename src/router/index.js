@@ -2,8 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Login from '../views/Login.vue';
 import Dashboard from '../views/Dashboard.vue';
 import Users from '../views/Users.vue';
-import AdminLayout from '../layouts/AdminLayout.vue';
 import Inventory from '../views/Inventory.vue';
+import Orders from '../views/Orders.vue'; // 🆕 Importer Orders-siden
 
 const routes = [
   { path: '/', component: Login },
@@ -20,6 +20,11 @@ const routes = [
   {
     path: '/inventory',
     component: Inventory,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/orders', // 🆕 Legger til Orders-siden i rutene
+    component: Orders,
     meta: { requiresAuth: true },
   }
 ];

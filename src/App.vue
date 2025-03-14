@@ -16,10 +16,8 @@ export default defineComponent({
   setup() {
     const route = useRoute();
 
-    // Sikre at route eksisterer og unngå feil ved undefined meta
-    const layout = computed(() => {
-      return route?.meta?.requiresAuth ? AdminLayout : 'div';
-    });
+    // Sikrer at route og meta eksisterer, og fallback til 'div'
+    const layout = computed(() => (route.meta?.requiresAuth ? AdminLayout : 'div'));
 
     return { layout };
   },
