@@ -36,6 +36,8 @@
   <script>
   import axios from 'axios';
   
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.inventoryadministrator.com/api";
+  
   export default {
     data() {
       return {
@@ -44,7 +46,7 @@
     },
     async mounted() {
       try {
-        const response = await axios.get("http://localhost:5000/api/orders");
+        const response = await axios.get(`${API_BASE_URL}/orders`);
         this.orders = response.data;
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -54,7 +56,7 @@
       async deleteOrder(orderId) {
         if (confirm("Are you sure you want to delete this order?")) {
           try {
-            await axios.delete(`http://localhost:5000/api/orders/${orderId}`);
+            await axios.delete(`${API_BASE_URL}/orders/${orderId}`);
             this.orders = this.orders.filter(order => order.id !== orderId);
             alert("Order deleted successfully");
           } catch (error) {
@@ -65,7 +67,7 @@
       async completeOrder(orderId) {
         if (confirm("Complete this order and update inventory?")) {
           try {
-            await axios.put(`http://localhost:5000/api/orders/${orderId}/complete`);
+            await axios.put(`${API_BASE_URL}/orders/${orderId}/complete`);
             this.orders = this.orders.filter(order => order.id !== orderId);
             alert("Order completed and inventory updated");
           } catch (error) {
@@ -82,6 +84,7 @@
     }
   };
   </script>
+  
   
   <style scoped>
   .orders {

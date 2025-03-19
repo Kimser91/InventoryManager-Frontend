@@ -72,6 +72,8 @@
 <script>
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.inventoryadministrator.com/api";
+
 export default {
   data() {
     return {
@@ -96,7 +98,7 @@ export default {
   methods: {
     async fetchInventory() {
       try {
-        const response = await axios.get('http://localhost:5000/api/inventory');
+        const response = await axios.get(`${API_BASE_URL}/inventory`);
         this.inventory = response.data;
       } catch (error) {
         console.error('Error fetching inventory:', error);
@@ -104,7 +106,7 @@ export default {
     },
     async addProduct() {
       try {
-        await axios.post('http://localhost:5000/api/inventory', this.newProduct);
+        await axios.post(`${API_BASE_URL}/inventory`, this.newProduct);
         alert('Product added!');
         this.newProduct = { product_name: '', store_name: '', article_number: '', stock_quantity: 0, min_threshold: 1, max_stock: 10, price: 0, owner: '' };
         await this.fetchInventory();
@@ -118,7 +120,7 @@ export default {
     },
     async saveEdit(id) {
       try {
-        await axios.put(`http://localhost:5000/api/inventory/${id}`, this.editProduct);
+        await axios.put(`${API_BASE_URL}/inventory/${id}`, this.editProduct);
         this.editingId = null;
         await this.fetchInventory();
       } catch (error) {
@@ -128,7 +130,7 @@ export default {
     async deleteItem(itemId) {
       if (confirm('Are you sure you want to delete this item?')) {
         try {
-          await axios.delete(`http://localhost:5000/api/inventory/${itemId}`);
+          await axios.delete(`${API_BASE_URL}/inventory/${itemId}`);
           await this.fetchInventory();
           alert('Item deleted successfully');
         } catch (error) {
@@ -138,7 +140,7 @@ export default {
     },
     async generateOrders() {
       try {
-        await axios.post('http://localhost:5000/api/inventory/generate-orders');
+        await axios.post(`${API_BASE_URL}/inventory/generate-orders`);
         alert('Orders generated!');
         await this.fetchInventory();
       } catch (error) {
@@ -158,6 +160,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .inventory {
