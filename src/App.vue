@@ -1,25 +1,33 @@
-<template>
-  <component :is="layout">
-    <router-view />
-  </component>
-</template>
-
 <script>
-import { defineComponent, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import AdminLayout from './layouts/AdminLayout.vue';
+import { ref, onMounted } from 'vue';
+import { getUser } from './services/authServices';
 
-export default defineComponent({
-  components: {
-    AdminLayout,
-  },
-  setup() {
-    const route = useRoute();
+export default {
+    setup() {
+        const user = ref(null);
 
-    // Sikrer at route og meta eksisterer, og fallback til 'div'
-    const layout = computed(() => (route.meta?.requiresAuth ? AdminLayout : 'div'));
+        onMounted(async () => {
+            // Sjekk om token er i URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
 
-    return { layout };
-  },
-});
+            if (token) {
+                // Lagre token i LocalStorage
+                localStorage.setItem('token', token);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            // Hent brukerinfo med token
+            try {
+                const response = await getUser();
+                user.value = response.data;
+            } catch (error) {
+                // Hvis token er ugyldig eller mangler, send til login
+                window.location.href = 'https://inventoryadministrator.com/login';
+            }
+        });
+
+        return { user };
+    }
+};
 </script>
