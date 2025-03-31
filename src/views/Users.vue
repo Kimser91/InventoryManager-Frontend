@@ -37,7 +37,7 @@
     },
     async mounted() {
       try {
-        const response = await axios.get('https://api.example.com/users');
+        const response = await axios.get('https://api.inventoryadministrator.com/users');
         this.users = response.data;
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -47,7 +47,7 @@
       async deleteUser(userId) {
         if (confirm('Are you sure you want to delete this user?')) {
           try {
-            await axios.delete(`https://api.example.com/users/${userId}`);
+            await axios.delete(`https://api.inventoryadministrator.com/users/${userId}`);
             this.users = this.users.filter(user => user.id !== userId);
             alert('User deleted successfully');
           } catch (error) {

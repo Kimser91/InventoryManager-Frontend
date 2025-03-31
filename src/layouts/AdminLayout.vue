@@ -19,7 +19,7 @@
 export default {
   methods: {
     logout() {
-      localStorage.removeItem('token');
+      //localStorage.removeItem('token');
       this.$router.push('/');
     }
   }

@@ -64,6 +64,7 @@
   </div>
 </template>
 
+
 <script>
 import axios from 'axios';
 
@@ -80,11 +81,11 @@ export default {
   async mounted() {
     try {
       // 🚀 Hent brukere
-      const usersResponse = await axios.get('http://localhost:5000/api/users');
+      const usersResponse = await axios.get('https://api.inventoryadministrator.com/api/users');
       this.totalUsers = usersResponse.data.length;
 
       // 🚀 Hent lagerstatus
-      const inventoryResponse = await axios.get('http://localhost:5000/api/inventory');
+      const inventoryResponse = await axios.get('https://api.inventoryadministrator.com/api/inventory');
 
       // 🚀 Filtrer produkter med lav beholdning
       const lowStock = inventoryResponse.data.filter(item => item.stock_quantity < item.min_threshold);
@@ -100,7 +101,7 @@ export default {
       }, {});
 
       // 🚀 Hent eksisterende ordrer
-      const ordersResponse = await axios.get("http://localhost:5000/api/orders");
+      const ordersResponse = await axios.get("https://api.inventoryadministrator.com/api/orders");
       this.orders = ordersResponse.data;
       this.generatedOrders = this.orders.length;
     } catch (error) {
@@ -111,10 +112,10 @@ export default {
     async generateOrders(store) {
       try {
         const items = this.inventoryByStore[store];
-        await axios.post('http://localhost:5000/api/inventory/generate-orders', { store, items });
+        await axios.post('https://api.inventoryadministrator.com/api/inventory/generate-orders', { store, items });
 
         // Oppdater ordrelisten
-        const ordersResponse = await axios.get("http://localhost:5000/api/orders");
+        const ordersResponse = await axios.get("https://api.inventoryadministrator.com/api/orders");
         this.orders = ordersResponse.data;
         this.generatedOrders = this.orders.length;
 
@@ -126,7 +127,7 @@ export default {
     async deleteOrder(orderId) {
       if (confirm("Are you sure you want to delete this order?")) {
         try {
-          await axios.delete(`http://localhost:5000/api/orders/${orderId}`);
+          await axios.delete(`https://api.inventoryadministrator.com/api/orders/${orderId}`);
           this.orders = this.orders.filter(order => order.id !== orderId);
           this.generatedOrders -= 1;
           alert("Order deleted successfully");
@@ -137,7 +138,7 @@ export default {
     },
     async markCompleted(orderId) {
       try {
-        await axios.put(`http://localhost:5000/api/orders/${orderId}`, { status: "completed" });
+        await axios.put(`https://api.inventoryadministrator.com/api/orders/${orderId}`, { status: "completed" });
         this.orders = this.orders.map(order => 
           order.id === orderId ? { ...order, status: "completed" } : order
         );
