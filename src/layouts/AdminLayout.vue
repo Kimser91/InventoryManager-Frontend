@@ -5,11 +5,12 @@
         <li><router-link to="/dashboard">Dashboard</router-link></li>
         <li><router-link to="/users">Users</router-link></li>
         <li><router-link to="/inventory">Inventory</router-link></li>
-        <li><router-link to="/orders">Orders</router-link></li> <!-- Ny knapp for å se ordrer -->
+        <li><router-link to="/orders">Orders</router-link></li>
         <li><button @click="logout">Logout</button></li>
       </ul>
     </nav>
     <main>
+      <h1>Welcome, {{ user.name }}</h1>
       <slot></slot>
     </main>
   </div>
@@ -17,55 +18,19 @@
 
 <script>
 export default {
+  data() {
+    return {
+      user: {
+        name: "Admin User",
+        role: "Hovedadmin"
+      }
+    };
+  },
   methods: {
     logout() {
-      //localStorage.removeItem('token');
+      console.log("User logged out");
       this.$router.push('/');
     }
   }
-}
+};
 </script>
-
-<style scoped>
-.admin-layout {
-  display: flex;
-  height: 100vh;
-}
-
-.sidebar {
-  width: 250px;
-  background: #343a40;
-  color: white;
-  padding: 20px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar ul li {
-  margin-bottom: 10px;
-}
-
-.sidebar a, .sidebar button {
-  color: white;
-  text-decoration: none;
-  display: block;
-  padding: 10px;
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-}
-
-.sidebar a:hover, .sidebar button:hover {
-  background: #495057;
-}
-
-main {
-  flex-grow: 1;
-  padding: 20px;
-}
-</style>

@@ -1,11 +1,19 @@
 <template>
-    <div>
-    <router-view></router-view>
-  </div>
-</template>
-
-
-<script>
+    <AdminLayout>
+      <router-view />
+    </AdminLayout>
+  </template>
+  
+  <script>
+  import AdminLayout from './layouts/AdminLayout.vue';
+  
+  export default {
+    components: {
+      AdminLayout
+    }
+  };
+  </script>
+  
 /*import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -61,4 +69,3 @@ export default {
         return { user };
     }
 };*/
-</script>
