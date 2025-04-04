@@ -1,18 +1,9 @@
 <template>
-    <AdminLayout>
       <router-view />
-    </AdminLayout>
   </template>
   
-  <script>
-  import AdminLayout from './layouts/AdminLayout.vue';
-  
-  export default {
-    components: {
-      AdminLayout
-    }
-  };
-  </script>
+  <script></script>
+
   
 /*import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';

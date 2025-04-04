@@ -37,36 +37,43 @@ const router = createRouter({
 //export default router;
 
 
-import { createRouter, createWebHistory } from 'vue-router';
-import Dashboard from '../views/Dashboard.vue';
-import Users from '../views/Users.vue';
-import Inventory from '../views/Inventory.vue';
-import Orders from '../views/Orders.vue'; 
-import Test from '../views/Test.vue';
+import { createRouter, createWebHistory } from 'vue-router'
+import AdminLayout from '@/layouts/AdminLayout.vue'
+
+import Dashboard from '@/views/Dashboard.vue'
+import Inventory from '@/views/Inventory.vue'
+import Users from '@/views/Users.vue'
+import Orders from '@/views/Orders.vue'
 
 const routes = [
-  { path: '/', component: Dashboard },
-  { path: '/test', component: Test },
-  { path: '/dashboard', component: Dashboard },
-  { path: '/users', component: Users },
-  { path: '/inventory', component: Inventory },
-  { path: '/orders', component: Orders }
-];
+  {
+    path: '/',
+    component: AdminLayout,
+    beforeEnter: (to, from, next) => {
+      const token = localStorage.getItem('admin.token');
+      if (!token) {
+        window.location.href = 'https://inventoryadministrator.com/login';
+      } else {
+        next();
+      }
+    
+    
+    },
+    children: [
+      { path: '', redirect: 'dashboard' },
+      { path: 'dashboard', component: Dashboard },
+      { path: 'inventory', component: Inventory },
+      { path: 'users', component: Users },
+      { path: 'orders', component: Orders },
+    ]
+  },
+]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
-});
+  routes
+})
 
-// Middleware (hvis nødvendig)
-router.beforeEach((to, from, next) => {
-  console.log("Navigating to:", to.path);
-  const token = localStorage.getItem('token');
-  if (to.meta.requiresAuth && !token) {
-    next('/');
-  } else {
-    next();
-  }
-});
+
 
 export default router;

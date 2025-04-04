@@ -3,7 +3,7 @@
     <h1>Inventory Management</h1>
 
     <!-- Legg til nytt produkt -->
-    <div class="add-product">
+    <div class="add-product bg-light mt-5">
       <h2>Add New Product</h2>
       <form @submit.prevent="addProduct">
         <input v-model="newProduct.product_name" placeholder="Product Name" required />
