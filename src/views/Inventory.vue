@@ -2,23 +2,72 @@
   <div class="inventory">
     <h1>Inventory Management</h1>
 
-    <!-- Legg til nytt produkt -->
     <div class="add-product bg-light mt-5">
-      <h2>Add New Product</h2>
+
+      <button class="btn btn-primary mb-4" @click="showForm = !showForm">
+          {{ showForm ? 'Skjul skjema' : 'Legg til nytt produkt' }}
+      </button>
+      <transition name="slide-fade">
+      <div v-if="showForm" class="add-product bg-light mt-5">
+        <h2>Add New Product</h2>
+
       <form @submit.prevent="addProduct">
-        <input v-model="newProduct.product_name" placeholder="Product Name" required />
-        <input v-model="newProduct.store_name" placeholder="Store Name" required />
-        <input v-model="newProduct.article_number" placeholder="Article #" required />
-        <input type="number" v-model="newProduct.stock_quantity" placeholder="Stock Quantity" required />
-        <input type="number" v-model="newProduct.min_threshold" placeholder="Min Threshold" required />
-        <input type="number" v-model="newProduct.max_stock" placeholder="Max Stock" required />
-        <input type="number" v-model="newProduct.price" placeholder="Price (NOK)" required />
-        <input v-model="newProduct.owner" placeholder="Owner" required />
+        <div class="mb-3">
+          <label>Product Name</label>
+          <input v-model="newProduct.product_name" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+          <label>Store Name</label>
+          <input v-model="newProduct.store_name" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+          <label>Article #</label>
+          <input v-model="newProduct.article_number" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+          <label>Stock Quantity</label>
+          <input type="number" v-model="newProduct.stock_quantity" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+          <label>Min Threshold</label>
+          <input type="number" v-model="newProduct.min_threshold" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+          <label>Max Stock</label>
+          <input type="number" v-model="newProduct.max_stock" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+          <label>Price (NOK)</label>
+          <input type="number" v-model="newProduct.price" class="form-control" required />
+        </div>
+
+
+        <div class="mb-3">
+          <label>Owner</label>
+          <select v-model="selectedOwner" class="form-control" required>
+            <option disabled value="">Velg eksisterende eller skriv nytt</option>
+            <option v-for="owner in owners" :key="owner" :value="owner">{{ owner }}</option>
+            <option value="__custom__">-- Skriv nytt navn --</option>
+          </select>
+        </div>
+
+        <div v-if="selectedOwner === '__custom__'" class="mb-3">
+          <label>Ny Owner</label>
+          <input v-model="customOwner" class="form-control" placeholder="Skriv nytt eiernavn" required />
+        </div>
+
         <button type="submit">Add Product</button>
       </form>
+      </div>
+    </transition>
     </div>
 
-    <!-- Lagerbeholdning -->
     <table>
       <thead>
         <tr>
@@ -36,7 +85,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in inventory" :key="item.id" :class="getRowClass(item)">
+        <tr v-for="item in filteredInventory" :key="item.id" :class="getRowClass(item)">
           <td>{{ item.id }}</td>
           <td><input v-if="editingId === item.id" v-model="editProduct.product_name" />
               <span v-else>{{ item.product_name }}</span></td>
@@ -64,10 +113,10 @@
       </tbody>
     </table>
 
-    <!-- Generer ordre -->
     <button class="generate-orders" @click="generateOrders">Generate Orders</button>
   </div>
 </template>
+
 
 <script>
 import axios from 'axios';
@@ -77,7 +126,14 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.inventory
 export default {
   data() {
     return {
+      showForm: false,
       inventory: [],
+      filteredInventory: [],
+      owners: [],
+      selectedOwner: '',
+      customOwner: '',
+      userPermissions: [],
+      canSeeAll: false,
       newProduct: {
         product_name: '',
         store_name: '',
@@ -93,22 +149,62 @@ export default {
     };
   },
   async mounted() {
+    await this.fetchUser();
     await this.fetchInventory();
   },
   methods: {
+    async fetchUser() {
+      try {
+        const token = localStorage.getItem('admin.token');
+        const response = await axios.get(`${API_BASE_URL}/auth/user`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const user = response.data;
+        this.userPermissions = user.permissions ? JSON.parse(user.permissions) : [];
+        this.canSeeAll = !!user.can_see_all;
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    },
     async fetchInventory() {
       try {
         const response = await axios.get(`${API_BASE_URL}/inventory`);
         this.inventory = response.data;
+        this.filterInventory();
+        this.updateOwnersList();
       } catch (error) {
         console.error('Error fetching inventory:', error);
       }
     },
+    filterInventory() {
+      if (this.canSeeAll) {
+        this.filteredInventory = this.inventory;
+      } else {
+        this.filteredInventory = this.inventory.filter(item =>
+          this.userPermissions.includes(item.owner)
+        );
+      }
+    },
+    updateOwnersList() {
+      const ownerSet = new Set();
+      this.inventory.forEach(item => {
+        if (item.owner) {
+          ownerSet.add(item.owner);
+        }
+      });
+      this.owners = Array.from(ownerSet);
+    },
     async addProduct() {
       try {
-        await axios.post(`${API_BASE_URL}/inventory`, this.newProduct);
+        const owner = this.selectedOwner === '__custom__' ? this.customOwner : this.selectedOwner;
+        await axios.post(`${API_BASE_URL}/inventory`, {
+          ...this.newProduct,
+          owner: owner
+        });
         alert('Product added!');
         this.newProduct = { product_name: '', store_name: '', article_number: '', stock_quantity: 0, min_threshold: 1, max_stock: 10, price: 0, owner: '' };
+        this.selectedOwner = '';
+        this.customOwner = '';
         await this.fetchInventory();
       } catch (error) {
         console.error('Error adding product:', error);
@@ -159,6 +255,7 @@ export default {
     }
   }
 };
+
 </script>
 
 
@@ -211,4 +308,28 @@ button {
 .generate-orders:hover {
   background: #218838;
 }
+
+.slide-fade-enter-active, .slide-fade-leave-active {
+  transition: all 0.5s ease;
+}
+
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+.slide-fade-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.slide-fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+
 </style>
