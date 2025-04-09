@@ -1,14 +1,3 @@
-/*
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-
-const app = createApp(App);
-
-app.use(router);
-app.mount('#app');
-*/
-
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
@@ -29,7 +18,6 @@ const app = createApp(App);
     url.searchParams.delete('token');
     window.history.replaceState({}, document.title, url.toString());
   }
-
 
   const token = localStorage.getItem('admin.token');
 if (token && isTokenExpired(token)) {

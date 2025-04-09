@@ -1,10 +1,8 @@
 <template>
   <div class="d-flex min-vh-100">
-    <!-- Sidebar -->
     <nav class="d-flex flex-column flex-shrink-0 p-3 bg-secondary text-white" style="width: 250px;">
       <h4 class="mb-4 text-center">Admin Panel</h4>
 
-      <!-- Brukerinfo -->
       <div class="text-center my-3">
         <strong>{{ currentUser.username }}</strong>
         <div v-if="currentUser.role" class="mt-1">
@@ -14,7 +12,6 @@
         </div>
       </div>
 
-      <!-- Navigasjon -->
       <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item">
           <router-link to="/dashboard" class="nav-link text-white" active-class="active">
@@ -37,12 +34,16 @@
           </router-link>
         </li>
         <li>
+          <router-link to="/requested" class="nav-link text-white" active-class="active">
+            Requested Products
+          </router-link>
+        </li>
+        <li>
           <button class="btn btn-outline-light mt-4" @click="logout">Logg ut</button>
         </li>
       </ul>
     </nav>
 
-    <!-- Main content -->
     <main class="flex-grow-1 p-4 bg-light">
       <router-view />
     </main>
