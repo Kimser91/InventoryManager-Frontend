@@ -1,106 +1,132 @@
 <template>
-  <div class="dashboard">
-    
-    <div class="stats-container">
-      <div class="stat-box">
-        <h3>Total Users</h3>
-        <p>{{ totalUsers }}</p>
+  <div class="container mt-4">
+    <h1 class="mb-4">Dashboard</h1>
+
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <router-link to="/inventory" class="text-decoration-none">
+          <div class="card text-white bg-primary h-100 clickable-card">
+            <div class="card-body">
+              <h5 class="card-title">Produkter</h5>
+              <p class="card-text display-6">{{ inventoryCount }}</p>
+            </div>
+          </div>
+        </router-link>
       </div>
-      <div class="stat-box">
-        <h3>Low Stock Items</h3>
-        <p>{{ lowStockItems }}</p>
+
+      <div class="col-md-4 mb-4">
+        <router-link to="/users" class="text-decoration-none">
+          <div class="card text-white bg-success h-100 clickable-card">
+            <div class="card-body">
+              <h5 class="card-title">Brukere</h5>
+              <p class="card-text display-6">{{ userCount }}</p>
+            </div>
+          </div>
+        </router-link>
       </div>
-      <div class="stat-box">
-        <h3>Generated Orders</h3>
-        <p>{{ generatedOrders }}</p>
+
+      <div class="col-md-4 mb-4">
+        <router-link to="/orders" class="text-decoration-none">
+          <div class="card text-white bg-warning h-100 clickable-card">
+            <div class="card-body">
+              <h5 class="card-title">Åpne Ordrer</h5>
+              <p class="card-text display-6">{{ orderCount }}</p>
+            </div>
+          </div>
+        </router-link>
       </div>
     </div>
-
   </div>
 </template>
-
 
 <script>
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.inventoryadministrator.com/api";
+
 export default {
   data() {
     return {
-      totalUsers: 0,
-      lowStockItems: 0,
-      generatedOrders: 0,
-      inventoryByStore: {},
-      orders: []
+      inventoryCount: 0,
+      userCount: 0,
+      orderCount: 0,
+      currentUserRole: '',
+      userPermissions: []
     };
   },
   async mounted() {
-    try {
-      const usersResponse = await axios.get('https://api.inventoryadministrator.com/api/users');
-      this.totalUsers = usersResponse.data.length;
-
-      const inventoryResponse = await axios.get('https://api.inventoryadministrator.com/api/inventory');
-
-      const lowStock = inventoryResponse.data.filter(item => item.stock_quantity < item.min_threshold);
-      this.lowStockItems = lowStock.length;
-
-      this.inventoryByStore = lowStock.reduce((acc, item) => {
-        if (!acc[item.store_name]) {
-          acc[item.store_name] = [];
-        }
-        acc[item.store_name].push(item);
-        return acc;
-      }, {});
-
-      const ordersResponse = await axios.get("https://api.inventoryadministrator.com/api/orders");
-      this.orders = ordersResponse.data;
-      this.generatedOrders = this.orders.length;
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    }
+    await this.fetchCurrentUser();
+    await this.fetchDashboardData();
   },
+  methods: {
+    async fetchCurrentUser() {
+      try {
+        const token = localStorage.getItem('admin.token');
+        const response = await axios.get(`${API_BASE_URL}/auth/user`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const user = response.data;
+        this.currentUserRole = user.role || '';
+
+        if (user.permissions) {
+          const permissions = JSON.parse(user.permissions);
+          this.userPermissions = permissions;
+          localStorage.setItem('admin.permissions', JSON.stringify(permissions));
+        }
+      } catch (error) {
+        console.error('Feil ved henting av bruker:', error);
+      }
+    },
+    async fetchDashboardData() {
+      try {
+        const token = localStorage.getItem('admin.token');
+
+        // Inventory
+        const inventoryRes = await axios.get(`${API_BASE_URL}/inventory`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const allInventory = inventoryRes.data;
+        this.inventoryCount = this.currentUserRole === 'Superadmin'
+          ? allInventory.length
+          : allInventory.filter(item => this.userPermissions.includes(item.owner)).length;
+
+        // Users
+        const usersRes = await axios.get(`${API_BASE_URL}/admin/users`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        this.userCount = usersRes.data.length;
+
+        // Orders
+        const ordersRes = await axios.get(`${API_BASE_URL}/orders`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        this.orderCount = ordersRes.data.filter(order => order.status === 'pending').length;
+
+      } catch (error) {
+        console.error('Feil ved henting av dashboard data:', error);
+      }
+    }
+  }
 };
 </script>
 
 <style scoped>
-.dashboard {
-  padding: 20px;
+.card {
+  border: none;
+  border-radius: 1rem;
+  transition: transform 0.2s;
 }
 
-.stats-container {
-  display: flex;
-  gap: 20px;
+.card:hover {
+  transform: scale(1.03);
+  cursor: pointer;
 }
 
-.stat-box {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 5px;
-  text-align: center;
-  flex: 1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.text-decoration-none {
+  text-decoration: none;
 }
 
-.stat-box h3 {
-  margin-bottom: 10px;
+.clickable-card {
+  height: 100%;
 }
-
-.stat-box p {
-  font-size: 1.5em;
-  font-weight: bold;
-}
-
-.store-orders {
-  margin-top: 20px;
-  display: flex;
-  gap: 20px;
-}
-
-.store-box {
-  background: #e9ecef;
-  padding: 15px;
-  border-radius: 5px;
-  text-align: center;
-  flex: 1;
-}
-
 </style>
