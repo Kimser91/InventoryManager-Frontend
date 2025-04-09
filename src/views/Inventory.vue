@@ -1,66 +1,86 @@
 <template>
-  <div class="inventory">
-    <h1>Inventory Management</h1>
+  <div class="container py-4">
+    <h1 class="mb-4">Inventory Management</h1>
 
-    <div class="add-product bg-light mt-5">
+    <div class="bg-light p-4 rounded shadow-sm">
       <button class="btn btn-primary mb-4" @click="showForm = !showForm">
         {{ showForm ? 'Hide Form' : 'Add New Product' }}
       </button>
 
       <transition name="slide-fade">
-        <div v-if="showForm" class="bg-light p-4 rounded">
-          <h2>Add New Product</h2>
+        <div v-if="showForm">
+          <h2 class="h4 mb-4">Add New Product</h2>
           <form @submit.prevent="addProduct">
-            <div class="mb-3" v-for="(label, key) in productFields" :key="key">
-              <label>{{ label }}</label>
-              <input v-model="newProduct[key]" :type="key.includes('quantity') || key.includes('threshold') || key.includes('price') ? 'number' : 'text'" class="form-control" required />
-            </div>
+            <div class="row g-3">
+              <div class="col-md-6" v-for="(label, key) in productFields" :key="key">
+                <label class="form-label">{{ label }}</label>
+                <input
+                  v-model="newProduct[key]"
+                  :type="key.includes('quantity') || key.includes('threshold') || key.includes('price') ? 'number' : 'text'"
+                  class="form-control"
+                  required
+                />
+              </div>
 
-            <div class="mb-3">
-              <label>Owner</label>
-              <select v-model="selectedOwner" class="form-control" required>
-                <option disabled value="">Select existing or add new</option>
-                <option v-for="owner in owners" :key="owner" :value="owner">{{ owner }}</option>
-                <option value="__custom__">-- Add new owner --</option>
-              </select>
-            </div>
+              <div class="col-md-6">
+                <label class="form-label">Owner</label>
+                <select v-model="selectedOwner" class="form-select" required>
+                  <option disabled value="">Select existing or add new</option>
+                  <option v-for="owner in owners" :key="owner" :value="owner">{{ owner }}</option>
+                  <option value="__custom__">-- Add new owner --</option>
+                </select>
+              </div>
 
-            <div v-if="selectedOwner === '__custom__'" class="mb-3">
-              <label>New Owner</label>
-              <input v-model="customOwner" class="form-control" placeholder="Enter new owner name" required />
-            </div>
+              <div v-if="selectedOwner === '__custom__'" class="col-md-6">
+                <label class="form-label">New Owner</label>
+                <input v-model="customOwner" class="form-control" placeholder="Enter new owner name" required />
+              </div>
 
-            <button type="submit" class="btn btn-success mt-2">Add Product</button>
+              <div class="col-12">
+                <button type="submit" class="btn btn-success mt-3">Add Product</button>
+              </div>
+            </div>
           </form>
         </div>
       </transition>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th v-for="head in tableHeaders" :key="head">{{ head }}</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in filteredInventory" :key="item.id" :class="getRowClass(item)">
-          <td>{{ item.id }}</td>
-          <td v-for="field in itemFields" :key="field">
-            <input v-if="editingId === item.id" v-model="editProduct[field]" :type="field.includes('quantity') || field.includes('threshold') || field.includes('price') ? 'number' : 'text'" />
-            <span v-else>{{ field === 'price' ? item[field] + ' NOK' : item[field] }}</span>
-          </td>
-          <td>{{ getStatusText(item) }}</td>
-          <td>
-            <button v-if="editingId === item.id" @click="saveEdit(item.id)">Save</button>
-            <button v-else @click="editItem(item)">Edit</button>
-            <button @click="deleteItem(item.id)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive mt-5">
+      <table class="table table-striped table-bordered">
+        <thead class="table-primary">
+          <tr>
+            <th v-for="head in tableHeaders" :key="head">{{ head }}</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in filteredInventory" :key="item.id" :class="getRowClass(item)">
+            <td>{{ item.id }}</td>
+            <td v-for="field in itemFields" :key="field">
+              <input
+                v-if="editingId === item.id"
+                v-model="editProduct[field]"
+                class="form-control form-control-sm"
+                :type="field.includes('quantity') || field.includes('threshold') || field.includes('price') ? 'number' : 'text'"
+              />
+              <span v-else>{{ field === 'price' ? item[field] + ' NOK' : item[field] }}</span>
+            </td>
+            <td>{{ getStatusText(item) }}</td>
+            <td>
+              <div class="btn-group">
+                <button v-if="editingId === item.id" class="btn btn-success btn-sm" @click="saveEdit(item.id)">Save</button>
+                <button v-else class="btn btn-warning btn-sm" @click="editItem(item)">Edit</button>
+                <button class="btn btn-danger btn-sm" @click="deleteItem(item.id)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <button class="generate-orders" @click="generateOrders">Generate Orders</button>
+    <div class="d-flex justify-content-end mt-4">
+      <button class="btn btn-success" @click="generateOrders">Generate Orders</button>
+    </div>
   </div>
 </template>
 
@@ -228,53 +248,16 @@ export default {
 </script>
 
 <style scoped>
-
-.inventory {
-  padding: 20px;
-}
-.add-product {
-  background: #f8f9fa;
-  padding: 15px;
-  margin-bottom: 20px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-thead {
-  background: #007bff;
-  color: white;
-}
-td, th {
-  padding: 10px;
-  border: 1px solid #ccc;
-  text-align: left;
-}
-.ok { background: #c8f7c5; }
+.ok { background: #d4edda; }
 .ordered { background: #fff3cd; }
 .below { background: #f8d7da; }
-button {
-  padding: 5px 10px;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-  margin-right: 5px;
-}
-.generate-orders {
-  margin-top: 20px;
-  background: #28a745;
-  color: white;
-}
-.generate-orders:hover {
-  background: #218838;
-}
+
 .slide-fade-enter-active, .slide-fade-leave-active {
   transition: all 0.5s ease;
 }
 .slide-fade-enter-from, .slide-fade-leave-to {
   opacity: 0;
-  transform: translateY(-20px);
+  transform: translateY(-10px);
 }
 .slide-fade-enter-to, .slide-fade-leave-from {
   opacity: 1;
