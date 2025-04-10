@@ -6,6 +6,7 @@ import Inventory from '@/views/Inventory.vue'
 import Users from '@/views/Users.vue'
 import Orders from '@/views/Orders.vue'
 import Requested from '@/views/RequestedProducts.vue'
+import ScanProduct from '@/views/ScanProduct.vue'
 
 const routes = [
   {
@@ -26,7 +27,9 @@ const routes = [
       { path: 'users', component: Users },
       { path: 'orders', component: Orders },
       { path: 'requested', component: Requested},
-    ]
+      { path: 'scan', name: 'Scan Product', component: ScanProduct},
+    ],
+    
   },
 ]
 

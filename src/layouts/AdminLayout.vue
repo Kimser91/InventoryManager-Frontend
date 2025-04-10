@@ -39,6 +39,11 @@
           </router-link>
         </li>
         <li>
+          <router-link to="/scan" class="nav-link text-white" active-class="active">
+            Scan Product
+          </router-link>
+        </li>
+        <li>
           <button class="btn btn-outline-light mt-4" @click="logout">Logg ut</button>
         </li>
       </ul>
