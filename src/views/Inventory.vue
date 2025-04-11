@@ -47,11 +47,10 @@
       <tbody>
         <tr v-for="item in filteredInventory" :key="item.id" :class="getRowClass(item)">
           <td>{{ item.id }}</td>
-          
+
           <td v-for="field in itemFields" :key="field">
             <template v-if="editingId === item.id">
               <input v-if="field !== 'owner'" v-model="editProduct[field]" :type="field.includes('quantity') || field.includes('threshold') || field.includes('price') ? 'number' : 'text'" class="form-control form-control-sm" />
-              
               <select v-else v-model="editProduct.owner" class="form-control form-control-sm">
                 <option v-for="owner in owners" :key="owner" :value="owner">{{ owner }}</option>
               </select>
@@ -69,12 +68,38 @@
             <button v-if="editingId === item.id" class="btn btn-success btn-sm" @click="saveEdit(item.id)">Save</button>
             <button v-else class="btn btn-primary btn-sm" @click="editItem(item)">Edit</button>
             <button class="btn btn-danger btn-sm" @click="deleteItem(item.id)">Delete</button>
+            <button class="btn btn-warning btn-sm" @click="prepareClone(item)">Add To</button>
           </td>
         </tr>
       </tbody>
     </table>
 
     <button class="btn btn-success mt-4" @click="generateOrders">Generate Orders</button>
+
+    <!-- Clone Modal -->
+    <div v-if="showCloneModal" class="modal d-block" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Clone Product</h5>
+          </div>
+          <div class="modal-body">
+            <label>Select owners to clone product to:</label>
+            <select v-model="selectedCloneOwners" multiple class="form-control">
+              <option v-for="owner in owners" :key="owner" :value="owner" :disabled="existingOwnersForProduct.includes(owner)">
+                {{ owner }} 
+                <span v-if="existingOwnersForProduct.includes(owner)"> (already added)</span>
+              </option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="cancelClone">Cancel</button>
+            <button class="btn btn-success" @click="confirmClone">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Clone Modal -->
   </div>
 </template>
 
@@ -86,6 +111,10 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.inventory
 export default {
   data() {
     return {
+      showCloneModal: false,
+      cloneTarget: null,
+      selectedCloneOwners: [],
+      existingOwnersForProduct: [],
       showForm: false,
       inventory: [],
       filteredInventory: [],
@@ -124,6 +153,47 @@ export default {
     await this.fetchInventory();
   },
   methods: {
+
+  async prepareClone(item) {
+      console.log("prepareClone");
+      await this.fetchInventory();
+      this.cloneTarget = item;
+      this.selectedCloneOwners = [];
+      this.showCloneModal = true;
+      this.existingOwnersForProduct = this.inventory
+        .filter(p => p.article_number === item.article_number)
+        .map(p => p.owner);
+
+      console.log("Existing owners for this product:", this.existingOwnersForProduct);
+    },
+    cancelClone() {
+      this.cloneTarget = null;
+      this.selectedCloneOwners = [];
+      this.showCloneModal = false;
+    },
+    async confirmClone() {
+      console.log("confirmClone start");
+      if (!this.selectedCloneOwners.length || !this.cloneTarget) {
+        alert("Please select at least one owner!");
+        return;
+      }
+      try {
+        const token = localStorage.getItem('admin.token');
+        const response = await axios.post(`${API_BASE_URL}/inventory/${this.cloneTarget.id}/clone`, {
+          newOwners: this.selectedCloneOwners
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.log("Clone response:", response.data);
+        alert('Product cloned successfully!');
+        await this.fetchInventory();
+      } catch (error) {
+        console.error('❌ Error cloning product:', error);
+        alert('Failed to clone product');
+      } finally {
+        this.cancelClone();
+      }
+    },
     async fetchUser() {
       const token = localStorage.getItem('admin.token');
       const response = await axios.get(`${API_BASE_URL}/auth/user`, {
@@ -146,10 +216,25 @@ export default {
         ? this.inventory
         : this.inventory.filter(item => this.userPermissions.includes(item.owner));
     },
-    updateOwnersList() {
-      const ownerSet = new Set(this.inventory.map(item => item.owner).filter(Boolean));
-      this.owners = Array.from(ownerSet);
-    },
+        updateOwnersList() {
+        const ownerSet = new Set();
+
+        this.inventory.forEach(item => {
+          if (item.owner) {
+            ownerSet.add(item.owner);
+          }
+        });
+
+        if (this.userPermissions && this.userPermissions.length > 0) {
+          this.userPermissions.forEach(permission => {
+            if (permission) {
+              ownerSet.add(permission);
+            }
+          });
+        }
+
+        this.owners = Array.from(ownerSet);
+      },
     async addProduct() {
       const token = localStorage.getItem('admin.token');
       const owner = this.selectedOwner === '__custom__' ? this.customOwner : this.selectedOwner;
