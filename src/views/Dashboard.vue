@@ -80,18 +80,23 @@ export default {
     async fetchDashboardData() {
       try {
         const token = localStorage.getItem('admin.token');
-
+        
         // Inventory
         const inventoryRes = await axios.get(`${API_BASE_URL}/inventory`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const allInventory = inventoryRes.data;
-        this.inventoryCount = this.currentUserRole === 'Superadmin'
+            console.log('🔎 All inventory:', allInventory);
+            console.log('🔎 currentUserRole:', this.currentUserRole);
+            console.log('🔎 userPermissions:', this.userPermissions);
+
+        this.inventoryCount = this.currentUserRole === 'Superadmin' || this.currentUserRole === 'Hovedadmin'
           ? allInventory.length
           : allInventory.filter(item => this.userPermissions.includes(item.owner)).length;
 
         // Users
         const usersRes = await axios.get(`${API_BASE_URL}/admin/users`, {
+        
           headers: { Authorization: `Bearer ${token}` }
         });
         this.userCount = usersRes.data.length;

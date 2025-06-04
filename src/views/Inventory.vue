@@ -76,7 +76,6 @@
 
     <button class="btn btn-success mt-4" @click="generateOrders">Generate Orders</button>
 
-    <!-- Clone Modal -->
     <div v-if="showCloneModal" class="modal d-block" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -99,7 +98,6 @@
         </div>
       </div>
     </div>
-    <!-- End Clone Modal -->
   </div>
 </template>
 
